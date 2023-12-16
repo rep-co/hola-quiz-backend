@@ -1,7 +1,7 @@
 version: '3.5'
 
 services:  
-  CourseWork_DB:
+ hola-quiz :
     container_name: hola-quiz
     image: postgres:15.4-alpine
     restart: always
