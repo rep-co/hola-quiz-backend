@@ -29,6 +29,7 @@ type PackQuiz struct {
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	Category    string          `json:"category"`
+	Emojis      string          `json:"emojis"`
 	Questions   []*QuizQuestion `json:"questions"`
 }
 
@@ -41,6 +42,7 @@ func NewPackQuiz(
 		Name:        pack.Name,
 		Description: pack.Description,
 		Category:    pack.Category,
+		Emojis:      pack.Emojis,
 		Questions:   questions,
 	}
 }
@@ -86,6 +88,7 @@ func ConvertPackToPackQuiz(pack *Pack, questions []*QuizQuestion) *PackQuiz {
 		Name:        pack.Name,
 		Description: pack.Description,
 		Category:    pack.Category,
+		Emojis:      pack.Emojis,
 		Questions:   questions,
 	}
 }
