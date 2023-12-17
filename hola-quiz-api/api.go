@@ -15,7 +15,10 @@ type APIServer struct {
 	storage       Storage
 }
 
-func NewAPIServer(listenAddress string, storage Storage) *APIServer {
+func NewAPIServer(
+	listenAddress string,
+	storage Storage,
+) *APIServer {
 	return &APIServer{
 		listenAddress: listenAddress,
 		storage:       storage,
@@ -58,7 +61,7 @@ func (s *APIServer) handleGetPackPreview(
 	if err != nil {
 		return err
 	}
-	packPreviews := ConvertPacksToPreviews(packs)
+	packPreviews := ConvertPacksToPackPreviews(packs)
 	return WriteJSON(w, http.StatusOK, packPreviews)
 }
 
@@ -77,7 +80,26 @@ func (s *APIServer) handleGetPackByID(
 		return err
 	}
 
-	return WriteJSON(w, http.StatusOK, pack)
+	questions := []*QuizQuestion{}
+	results, err := GetQuizQuestions(pack.Category, "20", "medium")
+	if err != nil {
+		return err
+	}
+
+	for _, res := range results {
+		quizQuestion := NewQuizQuestion(
+			res.ID,
+			res.Question,
+			res.Description,
+			res.Answers.ConvertToSlice(),
+			res.CorrectAnswers.ConvertToSlice(),
+			res.MultipleCorrectAnswers,
+			res.Explanation)
+		questions = append(questions, quizQuestion)
+	}
+	packQuiz := NewPackQuiz(pack, questions)
+
+	return WriteJSON(w, http.StatusOK, packQuiz)
 }
 
 func (s *APIServer) handleCreatePack(
