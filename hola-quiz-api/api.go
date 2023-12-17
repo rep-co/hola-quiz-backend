@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -24,7 +25,8 @@ func NewAPIServer(listenAddress string, storage Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/packs", makeHTTPHandlerFunc(s.handlePack))
+	router.HandleFunc("/pack", makeHTTPHandlerFunc(s.handlePack))
+	router.HandleFunc("/pack/{id}", makeHTTPHandlerFunc(s.handleGetPackByID))
 
 	log.Println("JSON API server is listening on port: ", s.listenAddress)
 
@@ -36,7 +38,7 @@ func (s *APIServer) handlePack(
 	r *http.Request,
 ) error {
 	if r.Method == "GET" {
-		return s.handleGetPacks(w, r)
+		return s.handleGetPackPreview(w, r)
 	}
 	if r.Method == "POST" {
 		return s.handleCreatePack(w, r)
@@ -48,7 +50,7 @@ func (s *APIServer) handlePack(
 	return fmt.Errorf("method is not allowed: %s", r.Method)
 }
 
-func (s *APIServer) handleGetPacks(
+func (s *APIServer) handleGetPackPreview(
 	w http.ResponseWriter,
 	r *http.Request,
 ) error {
@@ -56,15 +58,25 @@ func (s *APIServer) handleGetPacks(
 	if err != nil {
 		return err
 	}
-
-	return WriteJSON(w, http.StatusOK, packs)
+	packPreviews := ConvertPacksToPreviews(packs)
+	return WriteJSON(w, http.StatusOK, packPreviews)
 }
 
 func (s *APIServer) handleGetPackByID(
 	w http.ResponseWriter,
 	r *http.Request,
 ) error {
-	pack := NewPack("am", "og", "us")
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return fmt.Errorf("invalid id: %s", idStr)
+	}
+
+	pack, err := s.storage.GetPackByID(id)
+	if err != nil {
+		return err
+	}
+
 	return WriteJSON(w, http.StatusOK, pack)
 }
 
@@ -77,7 +89,10 @@ func (s *APIServer) handleCreatePack(
 		return err
 	}
 
-	pack := NewPack(createPackReq.Name, createPackReq.Description, createPackReq.Category)
+	pack := NewPack(createPackReq.Name,
+		createPackReq.Description,
+		createPackReq.Category,
+		createPackReq.Emojis)
 	if err := s.storage.CreatePack(pack); err != nil {
 		return err
 	}
