@@ -20,7 +20,12 @@ type PostgresStorage struct {
 }
 
 func NewPostgresStorage() (*PostgresStorage, error) {
-	connStr := "postgres://admin:root@localhost:5432/holaquiz?sslmode=disable"
+	connStr := "postgres://" +
+		cfg.PostgresUser + ":" +
+		cfg.PostgresPassword + "@" +
+		cfg.DatabaseHost + ":" +
+		cfg.DatabasePort + "/" +
+		cfg.Database + "?sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
