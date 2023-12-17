@@ -2,9 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"log"
-
 	_ "github.com/lib/pq"
+	"log"
 )
 
 type Storage interface {
@@ -44,7 +43,8 @@ func (s *PostgresStorage) createPackTable() error {
         id serial primary key,
         name varchar(255),
         description varchar(255),
-        category varchar(255)
+        category varchar(255),
+        emojis varchar(3)
     );`
 	_, err := s.db.Exec(query)
 	return err
@@ -54,13 +54,15 @@ func (s *PostgresStorage) CreatePack(pack *Pack) error {
 	query := `insert into pack (
         name, 
         description,
-        category
-    ) values ($1, $2, $3);`
+        category,
+        emojis
+    ) values ($1, $2, $3, $4);`
 	_, err := s.db.Query(
 		query,
 		pack.Name,
 		pack.Description,
-		pack.Category)
+		pack.Category,
+		pack.Emojis)
 
 	if err != nil {
 		return err
@@ -92,7 +94,8 @@ func (s *PostgresStorage) GetPacks() ([]*Pack, error) {
 			&pack.ID,
 			&pack.Name,
 			&pack.Description,
-			&pack.Category)
+			&pack.Category,
+			&pack.Emojis)
 
 		if err != nil {
 			return nil, err

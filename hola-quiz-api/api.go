@@ -24,14 +24,14 @@ func NewAPIServer(listenAddress string, storage Storage) *APIServer {
 func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/packs", makeHTTPHandlerFunc(s.handlePack))
+	router.HandleFunc("/packs", makeHTTPHandlerFunc(s.handlePacks))
 
 	log.Println("JSON API server is listening on port: ", s.listenAddress)
 
 	http.ListenAndServe(s.listenAddress, router)
 }
 
-func (s *APIServer) handlePack(
+func (s *APIServer) handlePacks(
 	w http.ResponseWriter,
 	r *http.Request,
 ) error {
@@ -64,7 +64,7 @@ func (s *APIServer) handleGetPackByID(
 	w http.ResponseWriter,
 	r *http.Request,
 ) error {
-	pack := NewPack("am", "og", "us")
+	pack := NewPack("am", "og", "us", "😀😉😙")
 	return WriteJSON(w, http.StatusOK, pack)
 }
 
@@ -77,7 +77,10 @@ func (s *APIServer) handleCreatePack(
 		return err
 	}
 
-	pack := NewPack(createPackReq.Name, createPackReq.Description, createPackReq.Category)
+	pack := NewPack(createPackReq.Name,
+		createPackReq.Description,
+		createPackReq.Category,
+		createPackReq.Emojis)
 	if err := s.storage.CreatePack(pack); err != nil {
 		return err
 	}
